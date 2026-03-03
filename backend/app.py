@@ -23,8 +23,12 @@ def login(email, password):
     })
     return response
 
-@app.route("/")
-def home():
+@app.route("/signup", methods=["POST"])
+def sign_up():
+    return "Hello, Flask!"
+
+@app.route("/login", methods=["POST"])
+def log_in():
     return "Hello, Flask!"
 
 if __name__ == "__main__":
