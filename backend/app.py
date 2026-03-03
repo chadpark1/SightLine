@@ -26,7 +26,24 @@ def login(email, password):
 
 @app.route("/signup", methods=["POST"])
 def sign_up():
-    return "Hello, Flask!"
+    data = request.get_json()
+
+    email = data.get("email")
+    password = data.get("password")
+
+    if not email or not password:
+        return jsonify({"error": "Email and password required"}), 400
+
+    try:
+        response = supabase.auth.sign_up({
+            "email": email,
+            "password": password
+        })
+
+        return jsonify(response.model_dump()), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 @app.route("/login", methods=["POST"])
 def log_in():
