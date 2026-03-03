@@ -54,7 +54,10 @@ def log_in():
     if not email or not password:
         return jsonify({"error": "Email and password are required"}), 400
     try:
-        auth_response = supabase.auth.sign_in_with_password(email, password)
+        auth_response = supabase.auth.sign_in_with_password({
+            "email": email,
+            "password": password
+        })
         
         return jsonify({
             "message": "Login successful!",
