@@ -1,0 +1,8 @@
+{
+  "name": "sightline",
+  "private": true,
+  "scripts": {
+    "start": "npm --prefix frontend start",
+    "backend": "python backend/app.py"
+  }
+}
