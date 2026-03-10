@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import svgPaths from "./svg-paths";
 import imgPaper21 from "../LandingPage/9600d715b43f7d60b6c4a7bbdc9c2c66b3288cdd.png";
 import imgImage6 from "../LandingPage/10e09fc392a8b074791b0ec683f23a90ba0a73b6.png";
@@ -277,8 +278,8 @@ export default function SignUpPage() {
         </div>
 
         {/* ===== "Sign In" link with underline in a white pill ===== */}
-        <div className="absolute bg-white h-[44px] left-[76px] rounded-[10px] shadow-[0px_6px_4px_0px_rgba(0,0,0,0.25)] top-[606px] w-[250px]" />
-        <p className="absolute decoration-solid font-['Hi_Melody'] h-[50px] leading-[normal] left-[167px] not-italic text-[#452d2d] text-[30px] top-[610px] underline w-[188px]">Sign In</p>
+        <Link to="/signin" className="absolute bg-white h-[44px] left-[76px] rounded-[10px] shadow-[0px_6px_4px_0px_rgba(0,0,0,0.25)] top-[606px] w-[250px] cursor-pointer hover:opacity-90 transition-opacity" />
+        <Link to="/signin" className="absolute decoration-solid font-['Hi_Melody'] h-[50px] leading-[normal] left-[167px] not-italic text-[#452d2d] text-[30px] top-[610px] underline w-[188px] cursor-pointer hover:opacity-90 transition-opacity">Sign In</Link>
 
         {/* ===== Small blue star (bottom-right decorative, rotated 15deg) ===== */}
         <div className="absolute flex h-[117.119px] items-center justify-center left-[295px] top-[609.5px] w-[120.135px]">
