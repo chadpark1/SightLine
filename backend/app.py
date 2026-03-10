@@ -1,10 +1,12 @@
-from flask import Flask
+from flask import Flask, request, jsonify
 from supabase import create_client, Client
+from dotenv import load_dotenv
 import os
-from flask import request, jsonify
 
-SUPABASE_URL = "https://skaanrwiwfnhofzdchiz.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNrYWFucndpd2ZuaG9memRjaGl6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1NjIxMDUsImV4cCI6MjA4NzEzODEwNX0.8lV_Mncr3JADxVTJPnuhgVJs1PYsJh1Dj6iDpGTx6JY"
+load_dotenv()
+
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
@@ -54,8 +56,11 @@ def log_in():
     if not email or not password:
         return jsonify({"error": "Email and password are required"}), 400
     try:
-        auth_response = supabase.auth.sign_in_with_password(email, password)
-        
+        auth_response = supabase.auth.sign_in_with_password({
+            "email": email,
+            "password": password
+        })
+
         return jsonify({
             "message": "Login successful!",
             "session": {
@@ -69,3 +74,18 @@ def log_in():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+"""
+from flask import Flask, jsonify
+
+app = Flask(__name__)
+
+
+@app.get("/api/health")
+def health_check():
+    return jsonify({"status": "ok"}), 200
+
+if __name__ == "__main__":
+    app.run(debug=True)
+"""
