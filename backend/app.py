@@ -58,7 +58,7 @@ def log_in(email: str, password: str):
                 "user": str(auth_response.user)
             }
         }
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=401, detail="Invalid login credentials")
 
 @app.get("/auth/google")
