@@ -99,15 +99,15 @@ export default function App() {
           </div>
 
           {/* ===== Title letters — "SightLinE" each in a unique decorative font ===== */}
-          <p className="absolute font-['Irish_Grover:Regular',sans-serif] h-[59px] leading-[normal] left-[42px] not-italic text-[#452d2d] text-[60px] top-[75px] w-[55px]">S</p>
-          <p className="absolute font-['Inika:Regular',sans-serif] h-[53px] leading-[normal] left-[84px] not-italic text-[#452d2d] text-[60px] top-[89px] w-[33px]">I</p>
-          <p className="absolute font-['Jacques_Francois_Shadow:Regular',sans-serif] h-[59px] leading-[normal] left-[112px] not-italic text-[#452d2d] text-[60px] top-[63px] w-[55px]">g</p>
-          <p className="absolute font-['JejuHallasan:Regular',sans-serif] h-[59px] leading-[normal] left-[150px] not-italic text-[#452d2d] text-[60px] top-[74px] w-[55px]">h</p>
-          <p className="absolute font-['Gugi:Regular',sans-serif] h-[59px] leading-[normal] left-[190px] not-italic text-[#452d2d] text-[60px] top-[89px] w-[55px]">t</p>
-          <p className="absolute font-['Jacques_Francois_Shadow:Regular',sans-serif] h-[59px] leading-[normal] left-[215px] not-italic text-[#452d2d] text-[60px] top-[64px] w-[55px]">L</p>
-          <p className="absolute font-['Jaini_Purva:Regular',sans-serif] h-[59px] leading-[normal] left-[263px] not-italic text-[#452d2d] text-[60px] top-[76px] w-[55px]">i</p>
-          <p className="absolute font-['Griffy:Regular',sans-serif] h-[59px] leading-[normal] left-[280px] not-italic text-[#452d2d] text-[60px] top-[81px] w-[55px]">N</p>
-          <p className="absolute font-['Germania_One:Regular',sans-serif] h-[59px] leading-[normal] left-[330px] not-italic text-[#452d2d] text-[60px] top-[72px] w-[55px]">E</p>
+          <p className="absolute font-['Irish_Grover'] h-[59px] leading-[normal] left-[42px] not-italic text-[#452d2d] text-[60px] top-[75px] w-[55px]">S</p>
+          <p className="absolute font-['Inika'] h-[53px] leading-[normal] left-[84px] not-italic text-[#452d2d] text-[60px] top-[89px] w-[33px]">I</p>
+          <p className="absolute font-['Jacques_Francois_Shadow'] h-[59px] leading-[normal] left-[112px] not-italic text-[#452d2d] text-[60px] top-[63px] w-[55px]">g</p>
+          <p className="absolute font-['JejuHallasan'] h-[59px] leading-[normal] left-[150px] not-italic text-[#452d2d] text-[60px] top-[74px] w-[55px]">h</p>
+          <p className="absolute font-['Gugi'] h-[59px] leading-[normal] left-[190px] not-italic text-[#452d2d] text-[60px] top-[89px] w-[55px]">t</p>
+          <p className="absolute font-['Jacques_Francois_Shadow'] h-[59px] leading-[normal] left-[215px] not-italic text-[#452d2d] text-[60px] top-[64px] w-[55px]">L</p>
+          <p className="absolute font-['Jaini_Purva'] h-[59px] leading-[normal] left-[263px] not-italic text-[#452d2d] text-[60px] top-[76px] w-[55px]">i</p>
+          <p className="absolute font-['Griffy'] h-[59px] leading-[normal] left-[280px] not-italic text-[#452d2d] text-[60px] top-[81px] w-[55px]">N</p>
+          <p className="absolute font-['Germania_One'] h-[59px] leading-[normal] left-[330px] not-italic text-[#452d2d] text-[60px] top-[72px] w-[55px]">E</p>
 
           {/* ===== "Connect Glasses" button (gradient pill, pink-to-blue) ===== */}
           <div className="absolute h-[43px] left-[87px] top-[295px] w-[205px]">
@@ -136,7 +136,7 @@ export default function App() {
               </svg>
             </div>
           </div>
-          <p className="absolute font-['Hi_Melody:Regular',sans-serif] h-[50px] leading-[normal] left-[calc(50%-88px)] not-italic text-[#452d2d] text-[30px] top-[302px] w-[176px]">Connect Glasses</p>
+          <p className="absolute font-['Hi_Melody'] h-[50px] leading-[normal] left-[calc(50%-88px)] not-italic text-[#452d2d] text-[30px] top-[302px] w-[176px]">Connect Glasses</p>
 
           {/* ===== Pink star (top-right decorative, rotated -20deg) ===== */}
           <div className="absolute flex h-[128.041px] items-center justify-center left-[287px] top-[168px] w-[127.934px]">
@@ -190,10 +190,10 @@ export default function App() {
           </div>
 
           {/* Video placeholder text */}
-          <p className="absolute font-['Hi_Melody:Regular',sans-serif] h-[50px] leading-[normal] left-[100px] not-italic opacity-50 text-[#452d2d] text-[30px] top-[510px] w-[188px]">[insert the video]</p>
+          <p className="absolute font-['Hi_Melody'] h-[50px] leading-[normal] left-[100px] not-italic opacity-50 text-[#452d2d] text-[30px] top-[510px] w-[188px]">[insert the video]</p>
 
           {/* "Daily Recap Video" label */}
-          <p className="absolute font-['Hi_Melody:Regular',sans-serif] h-[50px] leading-[normal] left-[104px] not-italic text-[#452d2d] text-[30px] top-[383px] w-[188px]">Daily Recap Video</p>
+          <p className="absolute font-['Hi_Melody'] h-[50px] leading-[normal] left-[104px] not-italic text-[#452d2d] text-[30px] top-[383px] w-[188px]">Daily Recap Video</p>
 
           {/* ===== Caption input field (rounded pill with inner shadow) ===== */}
           <div className="absolute h-[53px] left-[46px] top-[648px] w-[304px]">
@@ -215,7 +215,7 @@ export default function App() {
               </defs>
             </svg>
           </div>
-          <p className="absolute font-['Hi_Melody:Regular',sans-serif] h-[50px] leading-[normal] left-[100px] not-italic opacity-50 text-[#452d2d] text-[30px] top-[658px] w-[209px]">caption your video!</p>
+          <p className="absolute font-['Hi_Melody'] h-[50px] leading-[normal] left-[100px] not-italic opacity-50 text-[#452d2d] text-[30px] top-[658px] w-[209px]">caption your video!</p>
 
           {/* ===== "Gallery" button (gradient pill, pink-to-blue) ===== */}
           <div className="absolute h-[43px] left-[124px] top-[754px] w-[148px]">
@@ -244,7 +244,7 @@ export default function App() {
               </svg>
             </div>
           </div>
-          <p className="absolute font-['Hi_Melody:Regular',sans-serif] h-[50px] leading-[normal] left-[calc(50%-40px)] not-italic text-[#452d2d] text-[30px] top-[760px] w-[105px]">Gallery</p>
+          <p className="absolute font-['Hi_Melody'] h-[50px] leading-[normal] left-[calc(50%-40px)] not-italic text-[#452d2d] text-[30px] top-[760px] w-[105px]">Gallery</p>
 
           {/* ===== Decorative blue rectangle (bottom-right area, rotated -10deg) ===== */}
           <div className="absolute flex h-[220.136px] items-center justify-center left-[266px] top-[844px] w-[226.618px]">
