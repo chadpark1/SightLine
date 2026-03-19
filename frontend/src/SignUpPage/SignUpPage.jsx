@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
 import svgPaths from "./svg-paths";
 import imgPaper21 from "../LandingPage/9600d715b43f7d60b6c4a7bbdc9c2c66b3288cdd.png";
 import imgImage6 from "../LandingPage/10e09fc392a8b074791b0ec683f23a90ba0a73b6.png";
@@ -6,6 +8,30 @@ import imgImage8 from "../LandingPage/45238b0bccc8e5bfd9ca5116b13594d7c28bf341.p
 import imgImage9 from "../LandingPage/80e090bbb4cf707b84d8191d389f1f6fec8e8528.png";
 
 export default function SignUpPage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [emailSent, setEmailSent] = useState(false);
+
+  const handleSignUp = async () => {
+    setError('');
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: `${window.location.origin}/signin` },
+    });
+    if (error) {
+      setError(error.message);
+    } else {
+      setEmailSent(true);
+    }
+  };
+
   return (
     /* ===== Full-screen centering wrapper ===== */
     <div className="size-full flex items-center justify-center bg-gray-100">
@@ -186,7 +212,14 @@ export default function SignUpPage() {
             </defs>
           </svg>
         </div>
-        <p className="absolute font-['Hi_Melody'] h-[50px] leading-[normal] left-[70px] not-italic text-[#452d2d] text-[30px] top-[283px] w-[188px]">Email:</p>
+        <input
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          placeholder="Email"
+          className="absolute bg-transparent font-['Hi_Melody'] text-[#452d2d] text-[28px] outline-none"
+          style={{ left: 70, top: 283, width: 270, height: 46 }}
+        />
 
         {/* ===== Password input field (rounded pill with inner shadow) ===== */}
         <div className="absolute h-[53px] left-[49px] top-[353px] w-[304px]">
@@ -208,7 +241,14 @@ export default function SignUpPage() {
             </defs>
           </svg>
         </div>
-        <p className="absolute font-['Hi_Melody'] h-[50px] leading-[normal] left-[70px] not-italic text-[#452d2d] text-[30px] top-[366px] w-[188px]">Password:</p>
+        <input
+          type="password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          placeholder="Password"
+          className="absolute bg-transparent font-['Hi_Melody'] text-[#452d2d] text-[28px] outline-none"
+          style={{ left: 70, top: 366, width: 270, height: 46 }}
+        />
 
         {/* ===== Confirm Password input field (rounded pill with inner shadow) ===== */}
         <div className="absolute h-[53px] left-[49px] top-[427px] w-[304px]">
@@ -230,7 +270,14 @@ export default function SignUpPage() {
             </defs>
           </svg>
         </div>
-        <p className="absolute font-['Hi_Melody'] h-[50px] leading-[normal] left-[70px] not-italic text-[#452d2d] text-[30px] top-[437px] w-[188px]">Confirm Password:</p>
+        <input
+          type="password"
+          value={confirmPassword}
+          onChange={e => setConfirmPassword(e.target.value)}
+          placeholder="Confirm Password"
+          className="absolute bg-transparent font-['Hi_Melody'] text-[#452d2d] text-[28px] outline-none"
+          style={{ left: 70, top: 437, width: 270, height: 46 }}
+        />
 
         {/* ===== Sign Up button (gradient pill with drop shadow, pink-to-blue) ===== */}
         <div className="absolute h-[43px] left-[127px] top-[502px] w-[148px]">
@@ -259,7 +306,25 @@ export default function SignUpPage() {
             </svg>
           </div>
         </div>
-        <p className="absolute font-['Hi_Melody'] h-[50px] leading-[normal] left-[calc(50%-37px)] not-italic text-[#452d2d] text-[30px] top-[508px] w-[105px]">Sign Up</p>
+        <button
+          onClick={handleSignUp}
+          className="absolute font-['Hi_Melody'] text-[#452d2d] text-[30px] bg-transparent border-none cursor-pointer"
+          style={{ left: 'calc(50% - 37px)', top: 508, width: 105, height: 50 }}
+        >
+          Sign Up
+        </button>
+
+        {error && (
+          <p className="absolute font-['Hi_Melody'] text-red-500 text-[16px] text-center" style={{ left: 49, top: 565, width: 304 }}>
+            {error}
+          </p>
+        )}
+
+        {emailSent && (
+          <p className="absolute font-['Hi_Melody'] text-green-700 text-[16px] text-center" style={{ left: 49, top: 565, width: 304 }}>
+            Check your email for a confirmation link!
+          </p>
+        )}
 
         {/* ===== Paperclip image (right side, rotated 100deg) ===== */}
         <div className="absolute flex h-[71.725px] items-center justify-center left-[286.2px] top-[522.45px] w-[38.613px]">

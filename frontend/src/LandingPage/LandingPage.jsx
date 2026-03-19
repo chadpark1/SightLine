@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
 import svgPaths from "./svg-paths";
 import imgPaper21 from "./9600d715b43f7d60b6c4a7bbdc9c2c66b3288cdd.png";
 import imgImage5 from "./10e09fc392a8b074791b0ec683f23a90ba0a73b6.png";
@@ -6,6 +8,21 @@ import imgImage7 from "./45238b0bccc8e5bfd9ca5116b13594d7c28bf341.png";
 import imgImage9 from "./80e090bbb4cf707b84d8191d389f1f6fec8e8528.png";
 
 export default function LandingPage() {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleSignIn = async () => {
+    setError('');
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      setError(error.message);
+    } else {
+      navigate('/dashboard');
+    }
+  };
+
   return (
     /* ===== Full-screen centering wrapper ===== */
     <div className="size-full flex items-center justify-center bg-gray-100">
@@ -176,7 +193,14 @@ export default function LandingPage() {
             </defs>
           </svg>
         </div>
-        <p className="absolute font-['Hi_Melody'] h-[50px] leading-[normal] left-[70px] not-italic text-[#452d2d] text-[30px] top-[283px] w-[188px]">Email:</p>
+        <input
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          placeholder="Email"
+          className="absolute bg-transparent font-['Hi_Melody'] text-[#452d2d] text-[28px] outline-none"
+          style={{ left: 70, top: 283, width: 270, height: 46 }}
+        />
 
         {/* ===== Password input field (rounded pill with inner shadow) ===== */}
         <div className="absolute h-[53px] left-[49px] top-[353px] w-[304px]">
@@ -198,7 +222,14 @@ export default function LandingPage() {
             </defs>
           </svg>
         </div>
-        <p className="absolute font-['Hi_Melody'] h-[50px] leading-[normal] left-[70px] not-italic text-[#452d2d] text-[30px] top-[366px] w-[188px]">Password:</p>
+        <input
+          type="password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          placeholder="Password"
+          className="absolute bg-transparent font-['Hi_Melody'] text-[#452d2d] text-[28px] outline-none"
+          style={{ left: 70, top: 366, width: 270, height: 46 }}
+        />
 
         {/* ===== Log In button (gradient pill with drop shadow) ===== */}
         <div className="absolute h-[43px] left-[127px] top-[430px] w-[148px]">
@@ -227,7 +258,19 @@ export default function LandingPage() {
             </svg>
           </div>
         </div>
-        <p className="absolute font-['Hi_Melody'] h-[50px] leading-[normal] left-[calc(50%-36px)] not-italic text-[#452d2d] text-[30px] top-[436px] w-[71px]">Log In</p>
+        <button
+          onClick={handleSignIn}
+          className="absolute font-['Hi_Melody'] text-[#452d2d] text-[30px] bg-transparent border-none cursor-pointer"
+          style={{ left: 'calc(50% - 36px)', top: 436, width: 71, height: 50 }}
+        >
+          Log In
+        </button>
+
+        {error && (
+          <p className="absolute font-['Hi_Melody'] text-red-500 text-[16px] text-center" style={{ left: 49, top: 498, width: 304 }}>
+            {error}
+          </p>
+        )}
 
         {/* ===== Map image (bottom area, rotated -8deg, semi-transparent) ===== */}
         <div className="absolute flex h-[698.873px] items-center justify-center left-[-301.13px] top-[439.61px] w-[1284.426px]">
