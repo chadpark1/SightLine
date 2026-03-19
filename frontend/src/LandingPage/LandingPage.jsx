@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { supabase } from '../supabaseClient';
 import svgPaths from "./svg-paths";
 import imgPaper21 from "./9600d715b43f7d60b6c4a7bbdc9c2c66b3288cdd.png";
 import imgImage5 from "./10e09fc392a8b074791b0ec683f23a90ba0a73b6.png";
@@ -11,16 +10,9 @@ export default function LandingPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
 
-  const handleSignIn = async () => {
-    setError('');
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      setError(error.message);
-    } else {
-      navigate('/dashboard');
-    }
+  const handleSignIn = () => {
+    navigate('/app');
   };
 
   return (
@@ -261,16 +253,10 @@ export default function LandingPage() {
         <button
           onClick={handleSignIn}
           className="absolute font-['Hi_Melody'] text-[#452d2d] text-[30px] bg-transparent border-none cursor-pointer"
-          style={{ left: 'calc(50% - 36px)', top: 436, width: 71, height: 50 }}
+          style={{ left: 127, top: 430, width: 148, height: 53 }}
         >
           Log In
         </button>
-
-        {error && (
-          <p className="absolute font-['Hi_Melody'] text-red-500 text-[16px] text-center" style={{ left: 49, top: 498, width: 304 }}>
-            {error}
-          </p>
-        )}
 
         {/* ===== Map image (bottom area, rotated -8deg, semi-transparent) ===== */}
         <div className="absolute flex h-[698.873px] items-center justify-center left-[-301.13px] top-[439.61px] w-[1284.426px]">
