@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import svgPaths from "./svg-paths";
 import imgPaper21 from "./9600d715b43f7d60b6c4a7bbdc9c2c66b3288cdd.png";
 import imgImage5 from "./10e09fc392a8b074791b0ec683f23a90ba0a73b6.png";
@@ -240,8 +241,8 @@ export default function LandingPage() {
         </div>
 
         {/* ===== "new account" link with underline in a white pill ===== */}
-        <div className="absolute bg-white h-[44px] left-[76px] rounded-[10px] shadow-[0px_6px_4px_0px_rgba(0,0,0,0.25)] top-[560px] w-[250px]" />
-        <p className="absolute decoration-solid font-['Hi_Melody'] h-[50px] leading-[normal] left-[138px] not-italic text-[#452d2d] text-[30px] top-[566px] underline w-[188px]">new account</p>
+        <Link to="/signup" className="absolute bg-white h-[44px] left-[76px] rounded-[10px] shadow-[0px_6px_4px_0px_rgba(0,0,0,0.25)] top-[560px] w-[250px] cursor-pointer hover:opacity-90 transition-opacity" />
+        <Link to="/signup" className="absolute decoration-solid font-['Hi_Melody'] h-[50px] leading-[normal] left-[138px] not-italic text-[#452d2d] text-[30px] top-[566px] underline w-[188px] cursor-pointer hover:opacity-90 transition-opacity">new account</Link>
 
         {/* ===== Small blue star (bottom-left decorative) ===== */}
         <div className="absolute flex h-[112.099px] items-center justify-center left-[31px] top-[566px] w-[110.135px]">
