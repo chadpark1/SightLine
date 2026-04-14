@@ -257,6 +257,11 @@ export default function LandingPage() {
         >
           Log In
         </button>
+        <div
+          onClick={handleSignIn}
+          className="absolute cursor-pointer"
+          style={{ left: 76, top: 430, width: 250, height: 44 }}
+        />
 
         {/* ===== Map image (bottom area, rotated -8deg, semi-transparent) ===== */}
         <div className="absolute flex h-[698.873px] items-center justify-center left-[-301.13px] top-[439.61px] w-[1284.426px]">

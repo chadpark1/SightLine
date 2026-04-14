@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './LandingPage/LandingPage.jsx';
 import SignUpPage from './SignUpPage/SignUpPage.jsx';
 import MainAppPage from './mainappPage/src/app/App.tsx';
+import VideoRecapPage from './VideoRecapPage/VideoRecapPage.jsx';
 import './styles.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -13,6 +14,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/signin" element={<LandingPage />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/app" element={<MainAppPage />} />
+        <Route path="/recap" element={<VideoRecapPage />} />
         <Route path="/" element={<Navigate to="/signin" replace />} />
       </Routes>
     </BrowserRouter>

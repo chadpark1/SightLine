@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import svgPaths from "../imports/svg-sw7rhr3wcj";
 import imgPaper21 from "../assets/9600d715b43f7d60b6c4a7bbdc9c2c66b3288cdd.png";
 import imgImage7 from "../assets/45238b0bccc8e5bfd9ca5116b13594d7c28bf341.png";
@@ -5,6 +6,8 @@ import imgImage5 from "../assets/10e09fc392a8b074791b0ec683f23a90ba0a73b6.png";
 import imgImage9 from "../assets/80e090bbb4cf707b84d8191d389f1f6fec8e8528.png";
 
 export default function App() {
+  const navigate = useNavigate();
+
   return (
     /* ===== Full-screen centering wrapper ===== */
     <div className="size-full flex items-center justify-center bg-gray-100">
@@ -194,6 +197,15 @@ export default function App() {
 
           {/* "Daily Recap Video" label */}
           <p className="absolute font-['Hi_Melody'] h-[50px] leading-[normal] left-[104px] not-italic text-[#452d2d] text-[30px] top-[383px] w-[188px]">Daily Recap Video</p>
+
+          {/* "Generate Recap" button */}
+          <button
+            onClick={() => navigate("/recap")}
+            className="absolute left-[26px] top-[396px] z-10 px-4 py-2 rounded-full font-['Hi_Melody'] text-[16px] text-[#452d2d] shadow-md cursor-pointer"
+            style={{ background: "linear-gradient(to right, #FEEAF3, #D1EEFE)", border: "none" }}
+          >
+            + Generate Recap
+          </button>
 
           {/* ===== Caption input field (rounded pill with inner shadow) ===== */}
           <div className="absolute h-[53px] left-[46px] top-[648px] w-[304px]">
