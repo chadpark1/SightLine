@@ -3,7 +3,7 @@ import uuid as uuid_lib
 import requests
 from dotenv import load_dotenv
 from pydantic import BaseModel
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from supabase import create_client, Client
@@ -221,3 +221,106 @@ def get_render_status(render_id: str):
         "status": data["status"],   # "queued" | "fetching" | "rendering" | "saving" | "done" | "failed"
         "url": data.get("url"),     # only present when status == "done"
     }
+
+
+# ──────────────────────────────────────────────
+#  Video Uploads — glasses / device pipeline
+# ──────────────────────────────────────────────
+
+VIDEOS_BUCKET = "videos"
+
+
+@app.post("/videos/upload")
+async def upload_video(
+    file: UploadFile = File(...),
+    user_id: Optional[str] = Form(None),
+    device_id: Optional[str] = Form(None),
+    captured_at: Optional[str] = Form(None),
+    duration_seconds: Optional[float] = Form(None),
+):
+    """
+    Upload a video file to Supabase Storage and record its metadata
+    in the video_uploads table.
+
+    Form fields:
+      - file             required  the video file
+      - user_id          optional  account that owns this video (used as storage folder)
+      - device_id        optional  identifier for the glasses/device that recorded it
+      - captured_at      optional  ISO-8601 timestamp of when the clip was recorded
+      - duration_seconds optional  clip length in seconds
+    """
+    # Validate captured_at — ignore it if it's not a real ISO timestamp
+    parsed_captured_at = None
+    if captured_at:
+        try:
+            datetime.fromisoformat(captured_at.replace("Z", "+00:00"))
+            parsed_captured_at = captured_at
+        except ValueError:
+            pass
+
+    content = await file.read()
+    # Folder is the user account; UUID prefix prevents filename collisions
+    unique_name = f"{uuid_lib.uuid4()}_{file.filename}"
+    storage_path = f"{user_id or 'unknown'}/{unique_name}"
+
+    try:
+        supabase_admin.storage.from_(VIDEOS_BUCKET).upload(
+            storage_path,
+            content,
+            {"content-type": file.content_type or "video/mp4"},
+        )
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Storage upload failed: {e}")
+
+    row = {
+        "filename": file.filename,
+        "storage_path": storage_path,
+        "status": "uploaded",
+    }
+    if user_id:
+        row["user_id"] = user_id
+    if device_id:
+        row["device_id"] = device_id
+    if parsed_captured_at:
+        row["captured_at"] = parsed_captured_at
+    if duration_seconds is not None:
+        row["duration_seconds"] = duration_seconds
+
+    try:
+        result = supabase_admin.table("video_uploads").insert(row).execute()
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Database insert failed: {e}")
+
+    public_url = supabase_admin.storage.from_(VIDEOS_BUCKET).get_public_url(storage_path)
+    return {"video": result.data[0], "url": public_url}
+
+
+@app.get("/videos")
+def list_videos(user_id: Optional[str] = None, device_id: Optional[str] = None):
+    """
+    Return all video_uploads rows, newest first.
+    Pass ?user_id=xyz to filter by account, or ?device_id=xyz to filter by device.
+    """
+    query = supabase_admin.table("video_uploads").select("*").order("created_at", desc=True)
+    if user_id:
+        query = query.eq("user_id", user_id)
+    if device_id:
+        query = query.eq("device_id", device_id)
+    result = query.execute()
+    return {"videos": result.data}
+
+
+@app.get("/videos/{video_id}")
+def get_video(video_id: int):
+    """
+    Return a single video record plus a 1-hour signed URL for playback.
+    """
+    result = supabase_admin.table("video_uploads").select("*").eq("id", video_id).single().execute()
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Video not found")
+
+    video = result.data
+    signed = supabase_admin.storage.from_(VIDEOS_BUCKET).create_signed_url(
+        video["storage_path"], expires_in=3600
+    )
+    return {"video": video, "signed_url": signed["signedURL"]}
