@@ -6,12 +6,15 @@ from shotstack_sdk.model.timeline import Timeline
 from shotstack_sdk.model.output import Output
 from shotstack_sdk.model.edit import Edit
 from shotstack_sdk.model.video_asset import VideoAsset
-
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 
 host = "https://api.shotstack.io/stage"
 configuration = shotstack.Configuration(host=host)
-configuration.api_key['DeveloperKey'] = "VmyBQ8KwJR0lpBG5tMrBFRuFihJccRAIuJU7yUuD"
+configuration.api_key['DeveloperKey'] = os.getenv('SHOTSTACK_API_KEY')
+print(f"DEBUG: My key is: {os.getenv('SHOTSTACK_API_KEY')}")
 
 with shotstack.ApiClient(configuration) as api_client:
     api_instance = edit_api.EditApi(api_client)
