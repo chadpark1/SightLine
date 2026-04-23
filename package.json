@@ -2,10 +2,11 @@
   "name": "sightline",
   "private": true,
   "scripts": {
+    "install:frontend": "npm --prefix frontend install",
     "start": "npm --prefix frontend start",
+    "android": "npm --prefix frontend run android",
+    "ios": "npm --prefix frontend run ios",
+    "web": "npm --prefix frontend run web",
     "backend": "python backend/app.py"
-  },
-  "dependencies": {
-    "@supabase/supabase-js": "^2.98.0"
   }
 }
