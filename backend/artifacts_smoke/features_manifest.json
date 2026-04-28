@@ -1,0 +1,12 @@
+{
+  "created_at_unix": 1776907259.81198,
+  "feature_params": {
+    "n_mfcc": 40,
+    "sr": 16000,
+    "trim_top_db": 30
+  },
+  "fingerprint": "5b630250f9bec4ca0cc26b5deb687e1d3b0a77ae2882f106353a4a05ccb7dc7d",
+  "n_failures": 0,
+  "n_features": 80,
+  "n_samples": 180
+}
