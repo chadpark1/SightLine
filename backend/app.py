@@ -1,4 +1,7 @@
+import asyncio
 import os
+import shutil
+import tempfile
 import uuid as uuid_lib
 import requests
 from dotenv import load_dotenv
@@ -111,6 +114,8 @@ class ClipInput(BaseModel):
     url: str
     classifier: str
     score: float
+    duration: float = 5.0  # actual scene duration from pipeline
+    order: int = 0         # original position in source video(s)
 
 
 class GenerateRecapRequest(BaseModel):
@@ -141,11 +146,97 @@ async def upload_clips(files: list[UploadFile] = File(...)):
     return {"urls": urls}
 
 
+_TAG_TO_CLASSIFIER = {
+    "eating / drinking": "eating",
+    "social / conversation": "social",
+    "transit / moving": "transit",
+    "focused work / study": "work",
+    "outdoor / exercise": "exercise",
+    "entertainment / leisure": "other",
+    "event / gathering": "social",
+    "unclear / other": "other",
+}
+
+
+@app.post("/recap/analyze")
+async def analyze_clips(files: list[UploadFile] = File(...)):
+    """
+    Upload raw videos, run scene-detection + YOLO pipeline on each,
+    upload the extracted scene clips to Supabase, and return ranked clips
+    ready to pass directly to /recap/generate.
+    """
+    if not files:
+        raise HTTPException(status_code=400, detail="No files provided")
+
+    from pipeline import run_pipeline
+
+    tmp_dir = tempfile.mkdtemp(prefix="sightline_")
+    try:
+        all_clips = []
+        for file in files:
+            safe_name = os.path.basename(file.filename or "video.mp4")
+            video_path = os.path.join(tmp_dir, f"{uuid_lib.uuid4()}_{safe_name}")
+
+            # Stream to disk in 4MB chunks — avoids loading the whole file into memory
+            with open(video_path, "wb") as f:
+                while True:
+                    chunk = await file.read(4 * 1024 * 1024)
+                    if not chunk:
+                        break
+                    f.write(chunk)
+
+            clips_dir = os.path.join(tmp_dir, "clips")
+            ranked = await asyncio.to_thread(run_pipeline, video_path, clips_dir, max_scenes=20)
+
+            for clip in ranked:
+                clip_path = clip.get("clip_path")
+                if not clip_path or not os.path.exists(clip_path):
+                    continue
+
+                storage_path = f"clips/{uuid_lib.uuid4()}.mp4"
+                with open(clip_path, "rb") as f:
+                    clip_bytes = f.read()
+
+                supabase_admin.storage.from_(SUPABASE_CLIPS_BUCKET).upload(
+                    storage_path,
+                    clip_bytes,
+                    {"content-type": "video/mp4"},
+                )
+                public_url = supabase_admin.storage.from_(SUPABASE_CLIPS_BUCKET).get_public_url(storage_path)
+
+                all_clips.append({
+                    "url": public_url,
+                    "classifier": _TAG_TO_CLASSIFIER.get(clip["primary_tag"], "other"),
+                    "score": clip["rank_score"],
+                    "duration": clip["duration"],
+                    "order": 0,  # placeholder; set chronologically below after all videos processed
+                    "primary_tag": clip["primary_tag"],
+                    "secondary_tags": clip["secondary_tags"],
+                    "start": clip["start"],
+                    "end": clip["end"],
+                    "source_video": safe_name,
+                })
+
+        # Assign order based on true chronological position before any score sort
+        all_clips.sort(key=lambda c: (c["source_video"], c["start"]))
+        for i, clip in enumerate(all_clips):
+            clip["order"] = i
+
+        # Re-rank globally by score for display (order field now reflects timeline position)
+        all_clips.sort(key=lambda c: c["score"], reverse=True)
+        for i, clip in enumerate(all_clips):
+            clip["rank"] = i + 1
+
+        return {"clips": all_clips}
+    finally:
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+
+
 @app.post("/recap/generate")
 def generate_recap(request: GenerateRecapRequest):
     """
-    Sort clips by score, greedily pick up to ~60 s worth, and submit
-    a Shotstack render job. Returns the render ID for polling.
+    Select the highest-scoring clips that fit within 60 seconds, then
+    reorder them to match their original video order before rendering.
     """
     if not request.clips:
         raise HTTPException(status_code=400, detail="No clips provided")
@@ -153,29 +244,34 @@ def generate_recap(request: GenerateRecapRequest):
     if not SHOTSTACK_API_KEY:
         raise HTTPException(status_code=500, detail="SHOTSTACK_API_KEY not configured")
 
-    # Sort highest score first
-    sorted_clips = sorted(request.clips, key=lambda c: c.score, reverse=True)
+    MAX_DURATION = 60.0
 
-    TARGET_DURATION = 60  # seconds
-    DEFAULT_CLIP_LENGTH = 5  # fallback if we can't know duration ahead of time
+    # Step 1: score order (desc), tie-break by original position (asc)
+    by_score = sorted(request.clips, key=lambda c: (-c.score, c.order))
 
+    # Step 2: greedily pick clips that fit within the 60s cap
+    selected = []
+    total = 0.0
+    for clip in by_score:
+        if total + clip.duration <= MAX_DURATION:
+            selected.append(clip)
+            total += clip.duration
+
+    # Step 3: restore original video order
+    selected.sort(key=lambda c: c.order)
+
+    # Step 4: build Shotstack timeline using real durations
     timeline_clips = []
     current_start = 0.0
 
-    for clip in sorted_clips:
-        if current_start >= TARGET_DURATION:
-            break
-
-        remaining = TARGET_DURATION - current_start
-        clip_length = min(DEFAULT_CLIP_LENGTH, remaining)
-
+    for clip in selected:
         timeline_clips.append({
             "asset": {"type": "video", "src": clip.url},
             "start": current_start,
-            "length": clip_length,
+            "length": clip.duration,
             "transition": {"in": "fade", "out": "fade"},
         })
-        current_start += clip_length
+        current_start += clip.duration
 
     payload = {
         "timeline": {

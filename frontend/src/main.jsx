@@ -5,6 +5,8 @@ import LandingPage from './LandingPage/LandingPage.jsx';
 import SignUpPage from './SignUpPage/SignUpPage.jsx';
 import MainAppPage from './mainappPage/src/app/App.tsx';
 import VideoRecapPage from './VideoRecapPage/VideoRecapPage.jsx';
+import GalleryPage from './GalleryPage/GalleryPage.jsx';
+import VideoDetailPage from './VideoDetailPage/VideoDetailPage.jsx';
 import './styles.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -15,6 +17,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/app" element={<MainAppPage />} />
         <Route path="/recap" element={<VideoRecapPage />} />
+        <Route path="/gallery" element={<GalleryPage />} />
+        <Route path="/gallery/:id" element={<VideoDetailPage />} />
         <Route path="/" element={<Navigate to="/signin" replace />} />
       </Routes>
     </BrowserRouter>

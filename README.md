@@ -14,7 +14,7 @@ Minimal stack only:
 ## Run
 
 From project root:
-- `npm start` → frontend at `http://localhost:5173`
-- `npm run backend` → backend at `http://127.0.0.1:5000`
+- `npm run dev` → frontend at `http://localhost:5173`
+- `python -m uvicorn app:app --reload` → backend at `http://127.0.0.1:5000`
 
 Frontend proxies `/api/*` to Flask.

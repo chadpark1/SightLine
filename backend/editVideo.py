@@ -42,7 +42,7 @@ with shotstack.ApiClient(configuration) as api_client:
         )
         video_clips.append(clip)
         current_start += 5.0 # Move the start time for the next clip
-
+        
     # 4. Construct the Timeline & Output
     track = Track(clips=video_clips)
     timeline = Timeline(tracks=[track])

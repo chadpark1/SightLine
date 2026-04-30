@@ -3,37 +3,43 @@ import { useNavigate } from "react-router-dom";
 
 const BACKEND_URL = "http://localhost:8000";
 
-const CLASSIFIERS = ["eating", "transit", "exercise", "social", "work", "other"];
+const TAG_COLORS = {
+  "eating / drinking":     { bg: "#FFF3E0", text: "#E65100" },
+  "social / conversation": { bg: "#F3E5F5", text: "#6A1B9A" },
+  "transit / moving":      { bg: "#E8F5E9", text: "#2E7D32" },
+  "focused work / study":  { bg: "#E3F2FD", text: "#1565C0" },
+  "outdoor / exercise":    { bg: "#E8F5E9", text: "#1B5E20" },
+  "entertainment / leisure":{ bg: "#FCE4EC", text: "#880E4F" },
+  "event / gathering":     { bg: "#FFF8E1", text: "#F57F17" },
+  "unclear / other":       { bg: "#F5F5F5", text: "#757575" },
+};
 
 export default function VideoRecapPage() {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
   const [clips, setClips] = useState([]);
-  const [status, setStatus] = useState(null); // null | "uploading" | "generating" | "polling" | "done" | "error"
+  // analyzedScenes: null until analysis runs, then [{url, primary_tag, score, duration, ...}]
+  const [analyzedScenes, setAnalyzedScenes] = useState(null);
+  const [status, setStatus] = useState(null);
   const [statusMessage, setStatusMessage] = useState("");
   const [videoUrl, setVideoUrl] = useState(null);
+  const [previewScene, setPreviewScene] = useState(null);
 
   function handleFileChange(e) {
     const newFiles = Array.from(e.target.files);
     const newClips = newFiles.map((file) => ({
       file,
-      classifier: "other",
-      score: 0.5,
       previewUrl: URL.createObjectURL(file),
     }));
     setClips((prev) => [...prev, ...newClips]);
+    setAnalyzedScenes(null); // reset if new files added
     e.target.value = "";
-  }
-
-  function updateClip(index, field, value) {
-    setClips((prev) =>
-      prev.map((clip, i) => (i === index ? { ...clip, [field]: value } : clip))
-    );
   }
 
   function removeClip(index) {
     setClips((prev) => prev.filter((_, i) => i !== index));
+    setAnalyzedScenes(null);
   }
 
   async function handleGenerate() {
@@ -44,41 +50,41 @@ export default function VideoRecapPage() {
     }
 
     try {
-      // Step 1: Upload clips to backend
-      setStatus("uploading");
-      setStatusMessage("Uploading clips...");
+      // Step 1: Analyze — uploads videos, runs pipeline, returns ranked scenes
+      setStatus("analyzing");
+      setStatusMessage("Analyzing clips with AI...");
 
       const formData = new FormData();
       clips.forEach((clip) => formData.append("files", clip.file));
 
-      const uploadRes = await fetch(`${BACKEND_URL}/recap/upload`, {
+      const analyzeRes = await fetch(`${BACKEND_URL}/recap/analyze`, {
         method: "POST",
         body: formData,
       });
 
-      if (!uploadRes.ok) {
-        const err = await uploadRes.json();
-        throw new Error(err.detail || "Upload failed");
+      if (!analyzeRes.ok) {
+        const err = await analyzeRes.json();
+        throw new Error(err.detail || "Analysis failed");
       }
 
-      const { urls } = await uploadRes.json();
+      const { clips: scenes } = await analyzeRes.json();
 
-      // Step 2: Combine uploaded URLs with user-provided metadata
-      const clipData = urls.map((item, i) => ({
-        url: item.url,
-        filename: item.filename,
-        classifier: clips[i]?.classifier || "other",
-        score: parseFloat(clips[i]?.score) || 0.5,
-      }));
+      if (!scenes || scenes.length === 0) {
+        throw new Error("No scenes could be detected in the uploaded videos.");
+      }
 
-      // Step 3: Submit Shotstack render job
+      setAnalyzedScenes(scenes);
+
+      // Step 2: Submit Shotstack render job with auto-ranked clips
       setStatus("generating");
-      setStatusMessage("Submitting to Shotstack for rendering...");
+      setStatusMessage(
+        `Found ${scenes.length} scene${scenes.length !== 1 ? "s" : ""}. Submitting to Shotstack...`
+      );
 
       const generateRes = await fetch(`${BACKEND_URL}/recap/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clips: clipData }),
+        body: JSON.stringify({ clips: scenes }),
       });
 
       if (!generateRes.ok) {
@@ -88,7 +94,7 @@ export default function VideoRecapPage() {
 
       const { render_id } = await generateRes.json();
 
-      // Step 4: Poll for completion
+      // Step 3: Poll for completion
       setStatus("polling");
       setStatusMessage("Rendering your recap video...");
       await pollStatus(render_id);
@@ -123,7 +129,7 @@ export default function VideoRecapPage() {
     throw new Error("Render timed out. Try again.");
   }
 
-  const isProcessing = ["uploading", "generating", "polling"].includes(status);
+  const isProcessing = ["analyzing", "generating", "polling"].includes(status);
 
   return (
     <div
@@ -204,106 +210,53 @@ export default function VideoRecapPage() {
           onChange={handleFileChange}
         />
 
-        {/* Clip list */}
-        {clips.length > 0 && (
+        {/* Uploaded file list */}
+        {clips.length > 0 && !analyzedScenes && (
           <div style={{ marginBottom: 20 }}>
             <h2 style={{ fontFamily: "'Hi Melody', cursive", color: "#452d2d", fontSize: 20, marginBottom: 12 }}>
-              Your Clips ({clips.length})
+              Your Videos ({clips.length})
             </h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {clips.map((clip, i) => (
                 <div
                   key={i}
                   style={{
                     border: "1px solid #EEE1D0",
                     borderRadius: 14,
-                    padding: "12px 14px",
+                    padding: "10px 12px",
                     background: "#FFFCE9",
                     display: "flex",
                     gap: 12,
-                    alignItems: "flex-start",
+                    alignItems: "center",
                   }}
                 >
-                  {/* Video preview thumbnail */}
                   <video
                     src={clip.previewUrl}
-                    style={{ width: 72, height: 52, borderRadius: 8, objectFit: "cover", flexShrink: 0 }}
+                    style={{ width: 64, height: 46, borderRadius: 8, objectFit: "cover", flexShrink: 0 }}
                     muted
                     preload="metadata"
                   />
-
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p
-                      style={{
-                        margin: "0 0 8px",
-                        fontSize: 13,
-                        color: "#452d2d",
-                        fontWeight: 600,
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                    >
-                      {clip.file.name}
-                    </p>
-
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      {/* Classifier select */}
-                      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                        <label style={{ fontSize: 11, color: "#888" }}>Classifier</label>
-                        <select
-                          value={clip.classifier}
-                          onChange={(e) => updateClip(i, "classifier", e.target.value)}
-                          disabled={isProcessing}
-                          style={{
-                            border: "1px solid #EEE1D0",
-                            borderRadius: 8,
-                            padding: "4px 8px",
-                            fontSize: 13,
-                            background: "white",
-                            color: "#452d2d",
-                          }}
-                        >
-                          {CLASSIFIERS.map((c) => (
-                            <option key={c} value={c}>
-                              {c}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* Score input */}
-                      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                        <label style={{ fontSize: 11, color: "#888" }}>Score (0–1)</label>
-                        <input
-                          type="number"
-                          min="0"
-                          max="1"
-                          step="0.01"
-                          value={clip.score}
-                          onChange={(e) => updateClip(i, "score", e.target.value)}
-                          disabled={isProcessing}
-                          style={{
-                            width: 70,
-                            border: "1px solid #EEE1D0",
-                            borderRadius: 8,
-                            padding: "4px 8px",
-                            fontSize: 13,
-                            color: "#452d2d",
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Remove button */}
+                  <p
+                    style={{
+                      flex: 1,
+                      margin: 0,
+                      fontSize: 13,
+                      color: "#452d2d",
+                      fontWeight: 600,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {clip.file.name}
+                  </p>
                   <button
                     onClick={() => !isProcessing && removeClip(i)}
                     disabled={isProcessing}
                     style={{
                       background: "none",
                       border: "none",
-                      fontSize: 18,
+                      fontSize: 16,
                       cursor: isProcessing ? "not-allowed" : "pointer",
                       color: "#aaa",
                       padding: 0,
@@ -314,6 +267,99 @@ export default function VideoRecapPage() {
                   </button>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Analyzed scenes list */}
+        {analyzedScenes && (
+          <div style={{ marginBottom: 20 }}>
+            <h2 style={{ fontFamily: "'Hi Melody', cursive", color: "#452d2d", fontSize: 20, marginBottom: 4 }}>
+              Detected Scenes ({analyzedScenes.length})
+            </h2>
+            <p style={{ color: "#aaa", fontSize: 12, margin: "0 0 12px" }}>
+              Ranked by AI interest score
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {analyzedScenes.map((scene, i) => {
+                const colors = TAG_COLORS[scene.primary_tag] || TAG_COLORS["unclear / other"];
+                return (
+                  <div
+                    key={i}
+                    onClick={() => setPreviewScene(scene)}
+                    style={{
+                      border: "1px solid #EEE1D0",
+                      borderRadius: 14,
+                      padding: "10px 14px",
+                      background: "#FFFCE9",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      cursor: "pointer",
+                      transition: "box-shadow 0.15s",
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 2px 10px rgba(0,0,0,0.12)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "none")}
+                  >
+                    {/* Rank badge */}
+                    <div
+                      style={{
+                        width: 26,
+                        height: 26,
+                        borderRadius: "50%",
+                        background: "linear-gradient(135deg, #FEEAF3, #D1EEFE)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: "#452d2d",
+                        flexShrink: 0,
+                      }}
+                    >
+                      #{i + 1}
+                    </div>
+
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      {/* Tag badge */}
+                      <span
+                        style={{
+                          display: "inline-block",
+                          background: colors.bg,
+                          color: colors.text,
+                          borderRadius: 999,
+                          padding: "2px 10px",
+                          fontSize: 12,
+                          fontWeight: 600,
+                          marginBottom: 3,
+                        }}
+                      >
+                        {scene.primary_tag}
+                      </span>
+                      {/* Meta */}
+                      <p style={{ margin: 0, fontSize: 11, color: "#aaa" }}>
+                        {scene.source_video} · {scene.duration.toFixed(1)}s · score {scene.score.toFixed(2)}
+                      </p>
+                    </div>
+                    {/* Play icon */}
+                    <div
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: "50%",
+                        background: "linear-gradient(135deg, #FEEAF3, #D1EEFE)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                        fontSize: 12,
+                      }}
+                    >
+                      ▶
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -363,11 +409,22 @@ export default function VideoRecapPage() {
               controls
               style={{ width: "100%", borderRadius: 14, maxHeight: 280, background: "#000" }}
             />
-            <a
-              href={videoUrl}
-              download="daily_recap.mp4"
+            <button
+              onClick={() => {
+                const gallery = JSON.parse(localStorage.getItem("sightline_gallery") || "[]");
+                const id = Date.now().toString();
+                gallery.push({
+                  id,
+                  url: videoUrl,
+                  title: "Daily Recap",
+                  savedAt: new Date().toISOString(),
+                });
+                localStorage.setItem("sightline_gallery", JSON.stringify(gallery));
+                navigate("/gallery");
+              }}
               style={{
                 display: "block",
+                width: "100%",
                 marginTop: 10,
                 textAlign: "center",
                 background: "linear-gradient(to right, #FEEAF3, #D1EEFE)",
@@ -376,12 +433,13 @@ export default function VideoRecapPage() {
                 fontFamily: "'Hi Melody', cursive",
                 color: "#452d2d",
                 fontSize: 18,
-                textDecoration: "none",
+                border: "none",
                 boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                cursor: "pointer",
               }}
             >
-              Download Video
-            </a>
+              Save to Gallery
+            </button>
           </div>
         )}
 
@@ -410,7 +468,7 @@ export default function VideoRecapPage() {
         </button>
 
         <p style={{ textAlign: "center", color: "#aaa", fontSize: 12, marginTop: 12 }}>
-          Clips are ranked by score and trimmed to fit ~60 seconds
+          AI detects scenes and ranks them automatically
         </p>
       </div>
 
@@ -420,6 +478,89 @@ export default function VideoRecapPage() {
           to { transform: rotate(360deg); }
         }
       `}</style>
+
+      {/* Clip preview modal */}
+      {previewScene && (
+        <div
+          onClick={() => setPreviewScene(null)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.65)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            padding: 16,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "white",
+              borderRadius: 20,
+              padding: 20,
+              width: "100%",
+              maxWidth: 440,
+              boxShadow: "0 8px 40px rgba(0,0,0,0.25)",
+            }}
+          >
+            {/* Modal header */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span
+                  style={{
+                    background: (TAG_COLORS[previewScene.primary_tag] || TAG_COLORS["unclear / other"]).bg,
+                    color: (TAG_COLORS[previewScene.primary_tag] || TAG_COLORS["unclear / other"]).text,
+                    borderRadius: 999,
+                    padding: "3px 12px",
+                    fontSize: 13,
+                    fontWeight: 600,
+                  }}
+                >
+                  {previewScene.primary_tag}
+                </span>
+                <span style={{ fontSize: 12, color: "#aaa" }}>
+                  #{previewScene.rank} · {previewScene.duration.toFixed(1)}s · score {previewScene.score.toFixed(2)}
+                </span>
+              </div>
+              <button
+                onClick={() => setPreviewScene(null)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: 20,
+                  cursor: "pointer",
+                  color: "#aaa",
+                  lineHeight: 1,
+                  padding: 0,
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Video player */}
+            <video
+              key={previewScene.url}
+              src={previewScene.url}
+              controls
+              autoPlay
+              style={{
+                width: "100%",
+                borderRadius: 12,
+                maxHeight: 300,
+                background: "#000",
+                display: "block",
+              }}
+            />
+
+            <p style={{ margin: "10px 0 0", fontSize: 12, color: "#aaa", textAlign: "center" }}>
+              {previewScene.source_video} · {previewScene.start.toFixed(1)}s – {previewScene.end.toFixed(1)}s
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

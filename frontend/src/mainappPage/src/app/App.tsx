@@ -230,7 +230,7 @@ export default function App() {
           <p className="absolute font-['Hi_Melody'] h-[50px] leading-[normal] left-[100px] not-italic opacity-50 text-[#452d2d] text-[30px] top-[658px] w-[209px]">caption your video!</p>
 
           {/* ===== "Gallery" button (gradient pill, pink-to-blue) ===== */}
-          <div className="absolute h-[43px] left-[124px] top-[754px] w-[148px]">
+          <div className="absolute h-[43px] left-[124px] top-[754px] w-[148px]" onClick={() => navigate("/gallery")} style={{ cursor: "pointer" }}>
             <div className="absolute inset-[0_-2.7%_-23.26%_-2.7%]">
               <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 156 53">
                 <g filter="url(#filter0_d_40_50)">
@@ -256,7 +256,7 @@ export default function App() {
               </svg>
             </div>
           </div>
-          <p className="absolute font-['Hi_Melody'] h-[50px] leading-[normal] left-[calc(50%-40px)] not-italic text-[#452d2d] text-[30px] top-[760px] w-[105px]">Gallery</p>
+          <p className="absolute font-['Hi_Melody'] h-[50px] leading-[normal] left-[calc(50%-40px)] not-italic text-[#452d2d] text-[30px] top-[760px] w-[105px]" onClick={() => navigate("/gallery")} style={{ cursor: "pointer" }}>Gallery</p>
 
           {/* ===== Decorative blue rectangle (bottom-right area, rotated -10deg) ===== */}
           <div className="absolute flex h-[220.136px] items-center justify-center left-[266px] top-[844px] w-[226.618px]">
